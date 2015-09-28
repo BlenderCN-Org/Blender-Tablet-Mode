@@ -13,7 +13,7 @@ bl_info = {
 
 import bpy
 
-lass MouseClickModalOperator(bpy.types.Operator):
+class MouseClickModalOperator(bpy.types.Operator):
     bl_idname = "tabletmode.mouseclick"
     bl_label = "Tablet Mode: Mouseclick"
 
