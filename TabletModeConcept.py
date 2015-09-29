@@ -20,12 +20,11 @@ class MouseClickModalOperator(bpy.types.Operator):
     def modal(self, context, event):
         if event.type == 'LEFTMOUSE':
             if event.is_tablet != 1.0:
-                print("Tablet!")
+                return{'PASS_THROUGH'}
             elif event.is_tablet == 1.0:
-                print("Maus!")
-        elif event.type == 'RIGHTMOUSE':
-            return{'FINISHED'}
-        return{'RUNNING_MODAL'}
+                print("Tablet!")
+                return{'RUNNING_MODAL'}
+        return{'PASS_THROUGH'}
     
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
@@ -45,3 +44,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+    bpy.ops.tabletmode.mouseclick()
