@@ -19,10 +19,10 @@
 bl_info = {
     "name": "Tablet Mode",
     "author": "Matthias Ellerbeck",
-    "version": (0, 0, 2),
+    "version": (0, 0, 3),
     "blender": (2, 76, 0),
-    "location": "Node Editor",
-    "description": "Enables a Tablet Mode for Blender",
+    "location": "None",
+    "description": "Enables better tablet integration for Blender",
     "warning": "Early development state!",
     "wiki_url": "",
     "category": "User Interface",
@@ -30,43 +30,68 @@ bl_info = {
     
 import bpy
 
-#main operator
-class MouseClickModalOperator(bpy.types.Operator):
+#operator for mouse functions
+class WM_OT_MouseClickModalOperator(bpy.types.Operator):
     bl_idname = "wm.tabletmode"
-    bl_label = "Activate Tablet Mode"
+    bl_label = "Tablet Mode: Activate"
 
     def modal(self, context, event):
-        if event.is_tablet != True: #Ignoring all non-tablet events
-            return{'PASS_THROUGH'}
-        if context.area.type == 'NODE_EDITOR': #Does not work, gives back 'USER_PREFERENCES' every time
-            print("Yay!")
-            return{'PASS_THROUGH'}
-        return{'RUNNING_MODAL'}
+        if event.type == 'RIGHTMOUSE' and event.value == 'PRESS':
+            bpy.ops.tabletmode.contextmenu()
+            return{'RUNNING_MODAL'}
+        return{'PASS_THROUGH'}
     
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
+        return{'RUNNING_MODAL'}
+        #return wm.invoke_popup(self)
+        
+#implementing a context-menu
+class WM_OT_ContextMenuTabletMode(bpy.types.Operator):
+    bl_idname = "tabletmode.contextmenu"
+    bl_label = "Tablet Mode: Context Menu"
+    bl_options = {'INTERNAL'}
+    
+    def execute(self, context):
+        print(context.area.type)
+        return{'FINISHED'}
+        
+    def invoke(self, context, event):
+        #wm = context.window_manager
+        self.operator("node.delete", icon="X", text="Delete")
+        self.operator("node.mute_toggle", icon="RESTRICT_RENDER_OFF", text="")
+        return wm.invoke_popup(self)
+        
+    #def draw(self, context):
+        #layout = self.layout
+        #col = layout.column()
+        #col.operator("node.delete", icon="X", text="Delete")
+        #col.operator("node.mute_toggle", icon="RESTRICT_RENDER_OFF", text="")
+        #col.operator("node.hide_socket_toggle", icon="RESTRICT_VIEW_OFF", text="")
 
 #adding buttons for common used functions
-def NodeEditorPanel(self,context):
+def NodeEditorPanel(self, context):
     layout = self.layout
     col = layout.column()
     row = col.row(align=True)
-
     row.alignment = 'CENTER'
-    row.operator("bpy.ops.node.delete()", icon="X", text="Delete") #Delete button, currently doesn't work
+    row.operator("node.delete", icon="X", text="Delete")
+    row.operator("node.mute_toggle", icon="RESTRICT_RENDER_OFF", text="")
+    row.operator("node.hide_socket_toggle", icon="RESTRICT_VIEW_OFF", text="")
+    row.operator("node.group_edit", icon="ZOOM_ALL", text="")
 
 #registration
 def register():
-    #bpy.utils.register_module(__name__)
-    bpy.utils.register_class(MouseClickModalOperator)
+    bpy.utils.register_module(__name__)
+    #bpy.utils.register_class(MouseClickModalOperator)
     bpy.types.NODE_HT_header.append(NodeEditorPanel)
 
 def unregister():
-    #bpy.utils.unregister_module(__name__)
-    bpy.utils.unregister_class(MouseClickModalOperator)
+    bpy.utils.unregister_module(__name__)
+    #bpy.utils.unregister_class(MouseClickModalOperator)
     bpy.types.NODE_HT_header.remove(NodeEditorPanel)
 
 if __name__ == "__main__":
     register()
-    #bpy.ops.wm.tabletmode('INVOKE_SCREEN')
+    
+    bpy.ops.wm.tabletmode()
